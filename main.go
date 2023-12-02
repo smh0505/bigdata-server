@@ -11,10 +11,10 @@ import (
 
 type Row struct {
 	//id,ingredients_str,allergens_str,title,allergens
-	Id 	    string   `json:"id"`
+	Id          string   `json:"id"`
 	Ingredients []string `json:"ingredients_str"`
 	Allergens   []string `json:"allergens_str"`
-	Title 	    string   `json:"title"`
+	Title       string   `json:"title"`
 	AllergenStr string   `json:"allergens"`
 }
 
@@ -29,18 +29,18 @@ func main() {
 	var database []Row
 	for _, row := range data {
 		database = append(database, Row{
-			Id: row[0],
+			Id:          row[0],
 			Ingredients: strings.Split(row[1], "\t"),
-			Allergens: strings.Split(row[2], "\t"),
-			Title: row[3],
+			Allergens:   strings.Split(row[2], "\t"),
+			Title:       row[3],
 			AllergenStr: row[4],
 		})
 	}
 
-	http.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		decoder := json.NewDecoder(r.Body)
 		var body struct {
-			Index 	  int 	   `json:"index"`
+			Index     int      `json:"index"`
 			Allergens []string `json:"allergens"`
 		}
 		decoder.Decode(&body)
@@ -55,10 +55,11 @@ func main() {
 				filtered = append(filtered, row)
 			}
 		}
-		
-		begin := max(0, min(body.Index, len(filtered) - 1))
-		end := min(begin + 20, len(filtered))
-		
+
+		begin := max(0, min(body.Index, len(filtered)-1))
+		end := min(begin+20, len(filtered))
+
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		json.NewEncoder(w).Encode(filtered[begin:end])
 	})
 	http.ListenAndServe(":8080", nil)
