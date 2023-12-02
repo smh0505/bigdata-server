@@ -11,10 +11,10 @@ import (
 
 type Row struct {
 	//id,ingredients_str,allergens_str,title,allergens
-	Id 			string   `json:"id"`
+	Id 	    string   `json:"id"`
 	Ingredients []string `json:"ingredients_str"`
-	Allergens 	[]string `json:"allergens_str"`
-	Title 		string   `json:"title"`
+	Allergens   []string `json:"allergens_str"`
+	Title 	    string   `json:"title"`
 	AllergenStr string   `json:"allergens"`
 }
 
