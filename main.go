@@ -5,28 +5,35 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 )
+
+type Row struct {
+	//id,ingredients_str,allergens_str,title,allergens
+	Id 			string   `json:"id"`
+	Ingredients []string `json:"ingredients_str"`
+	Allergens 	[]string `json:"allergens_str"`
+	Title 		string   `json:"title"`
+	AllergenStr string   `json:"allergens"`
+}
 
 func main() {
 	db, _ := os.Open("Ready.csv")
 	defer db.Close()
 
 	reader := csv.NewReader(db)
-	data, err := reader.ReadAll()
-	if err != nil {
-		panic(err)
-	}
-	headers, data := data[0], data[1:]
+	data, _ := reader.ReadAll()
+	data = data[1:]
 
-	var database []map[string]any
+	var database []Row
 	for _, row := range data {
-		database = append(database, map[string]any{
-			headers[0]: row[0],
-			headers[1]: strings.Split(row[1], "\t"),
-			headers[2]: strings.Split(row[2], "\t"),
-			headers[3]: row[3],
-			headers[4]: row[4],
+		database = append(database, Row{
+			Id: row[0],
+			Ingredients: strings.Split(row[1], "\t"),
+			Allergens: strings.Split(row[2], "\t"),
+			Title: row[3],
+			AllergenStr: row[4],
 		})
 	}
 
@@ -37,11 +44,22 @@ func main() {
 			Allergens []string `json:"allergens"`
 		}
 		decoder.Decode(&body)
+
+		var filtered []Row
+		for _, row := range database {
+			check := false
+			for _, allergen := range body.Allergens {
+				check = check || slices.Contains(row.Allergens, allergen)
+			}
+			if !check {
+				filtered = append(filtered, row)
+			}
+		}
 		
-		begin := max(0, min(body.Index, len(database) - 1))
-		end := min(begin + 20, len(database))
+		begin := max(0, min(body.Index, len(filtered) - 1))
+		end := min(begin + 20, len(filtered))
 		
-		json.NewEncoder(w).Encode(database[begin:end])
+		json.NewEncoder(w).Encode(filtered[begin:end])
 	})
 	http.ListenAndServe(":8080", nil)
 }
